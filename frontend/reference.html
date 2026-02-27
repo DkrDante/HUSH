@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HUSH – ISL Alphabet Reference Guide</title>
+    <meta name="description"
+        content="Complete Indian Sign Language alphabet reference with gesture descriptions and tips for all 26 letters." />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/reference.css" />
+</head>
+
+<body>
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand" aria-label="HUSH Home">
+                <div class="nav-logo" aria-hidden="true">H</div>
+                <span class="nav-name">HUSH</span>
+            </a>
+            <ul class="nav-links" role="list">
+                <li><a href="/">Home</a></li>
+                <li><a href="/app">Recognize</a></li>
+                <li><a href="/reference" class="active" aria-current="page">ISL Reference</a></li>
+            </ul>
+            <a href="/app" class="btn btn-primary nav-cta">Start Recognizing →</a>
+        </div>
+    </nav>
+
+    <main class="ref-main" id="main-content">
+        <div class="container">
+            <header class="ref-header">
+                <div class="section-tag" aria-hidden="true">Reference Guide</div>
+                <h1>ISL Alphabet <span class="gradient-text">A to Z</span></h1>
+                <p class="ref-subtitle">
+                    Indian Sign Language one-hand static gestures for each letter. Click any card for details.
+                </p>
+
+                <!-- Search + filter -->
+                <div class="ref-controls" role="search">
+                    <div class="search-wrap">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input type="search" id="ref-search" placeholder="Search by letter or description…"
+                            class="ref-search" aria-label="Search ISL alphabet" autocomplete="off" />
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="show-all-btn" aria-label="Show all letters">All
+                        Letters</button>
+                </div>
+            </header>
+
+            <!-- Alphabet Grid -->
+            <div class="alpha-grid" id="alpha-grid" role="list" aria-label="ISL alphabet cards"></div>
+
+            <!-- Detail Modal -->
+            <div class="detail-modal" id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-letter"
+                tabindex="-1" hidden>
+                <div class="modal-backdrop" id="modal-backdrop"></div>
+                <div class="modal-content card-glass">
+                    <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+                    <div class="modal-letter-big" id="modal-letter" aria-label="Letter"></div>
+                    <div class="modal-body">
+                        <h2 class="modal-title" id="modal-title">Letter A</h2>
+                        <div class="modal-badges" id="modal-badges"></div>
+                        <p class="modal-desc" id="modal-desc"></p>
+                        <div class="modal-fingers" id="modal-fingers">
+                            <span class="modal-fingers-label">Fingers:</span>
+                            <span id="modal-fingers-val"></span>
+                        </div>
+                        <div class="modal-tip" id="modal-tip">
+                            <span class="tip-icon" aria-hidden="true">💡</span>
+                            <span id="modal-tip-val"></span>
+                        </div>
+                    </div>
+                    <a href="/app" class="btn btn-primary" style="margin-top: 24px;">
+                        Try in Recognizer →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" role="alert" aria-live="assertive" id="toast-container"></div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <p>HUSH · <a href="/app">Start Recognizing</a> · <a href="/">Home</a></p>
+        </div>
+    </footer>
+
+    <script src="/static/js/reference.js"></script>
+</body>
+
+</html>

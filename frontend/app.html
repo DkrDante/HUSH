@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HUSH – Sign Language Recognizer</title>
+    <meta name="description" content="Real-time ISL alphabet recognition via webcam." />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+
+<body>
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand" aria-label="HUSH Home">
+                <div class="nav-logo" aria-hidden="true">H</div>
+                <span class="nav-name">HUSH</span>
+            </a>
+            <ul class="nav-links" role="list">
+                <li><a href="/">Home</a></li>
+                <li><a href="/app" class="active" aria-current="page">Recognize</a></li>
+                <li><a href="/reference">ISL Guide</a></li>
+            </ul>
+            <div class="nav-status" aria-live="polite" aria-atomic="true">
+                <span class="pulse-dot" id="status-dot" aria-hidden="true"></span>
+                <span id="status-text" class="nav-status-text">Connecting…</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Screen reader live region -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="sr-announcement"></div>
+
+    <main class="app-main" id="main-content">
+        <div class="app-layout">
+
+            <!-- ── Left: Camera + Result ── -->
+            <section class="camera-section" aria-labelledby="camera-heading">
+                <h1 id="camera-heading" class="sr-only">Live ISL Recognition</h1>
+
+                <!-- Camera frame -->
+                <div class="camera-wrapper">
+                    <div class="camera-frame" id="camera-frame">
+                        <video id="video" playsinline autoplay muted aria-hidden="true"></video>
+                        <canvas id="canvas" aria-hidden="true"></canvas>
+
+                        <!-- Hold ring overlay (auto-mode progress) -->
+                        <div class="hold-ring-wrap" id="hold-ring-wrap" aria-hidden="true">
+                            <div class="hold-ring" id="hold-ring"></div>
+                            <span class="hold-ring-label">Hold</span>
+                        </div>
+
+                        <!-- No hand overlay -->
+                        <div class="camera-overlay" id="no-hand-overlay" aria-hidden="true">
+                            <div class="overlay-icon">✋</div>
+                            <div class="overlay-text">Show your hand in frame</div>
+                        </div>
+
+                        <!-- Permission overlay -->
+                        <div class="camera-overlay camera-overlay--permission" id="permission-overlay">
+                            <div class="overlay-icon">📷</div>
+                            <div class="overlay-text">Camera access needed</div>
+                            <button class="btn btn-primary" id="request-camera-btn">Allow Camera</button>
+                        </div>
+                    </div>
+
+                    <!-- Camera controls bar -->
+                    <div class="camera-controls">
+                        <button class="btn btn-secondary btn-sm" id="toggle-camera-btn">⏸ Pause</button>
+                        <button class="btn btn-secondary btn-sm" id="flip-camera-btn">🔄 Flip</button>
+                        <button class="btn btn-secondary btn-sm" id="hc-btn">🌓 Contrast</button>
+                        <button class="btn btn-secondary btn-sm" id="auto-mode-btn" aria-pressed="false"
+                            title="Hold a letter in frame and it auto-adds to your word">
+                            🤖 Auto
+                        </button>
+                    </div>
+
+                    <!-- Auto-add progress bar -->
+                    <div class="auto-progress-wrap" id="auto-progress-parent" style="opacity:0">
+                        <div class="auto-progress-track">
+                            <div class="auto-progress-fill" id="auto-progress"></div>
+                        </div>
+                        <span class="auto-progress-label">Hold to add…</span>
+                    </div>
+                </div>
+
+                <!-- ── Result card ── -->
+                <div class="result-card card" aria-live="polite" aria-label="Recognition result">
+                    <div class="result-letter-wrap">
+                        <div class="result-letter" id="result-letter" aria-label="Detected letter">–</div>
+                        <div class="result-state" id="result-state">Show your hand…</div>
+                    </div>
+
+                    <div class="result-meta">
+                        <div class="confidence-row">
+                            <label class="confidence-label">Confidence</label>
+                            <span class="confidence-value mono" id="confidence-value">0%</span>
+                        </div>
+                        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                            aria-valuenow="0" id="confidence-wrap">
+                            <div class="progress-fill" id="confidence-bar" style="width:0%"></div>
+                        </div>
+                        <div class="gesture-tip" id="gesture-tip">
+                            <span class="tip-icon" aria-hidden="true">💡</span>
+                            <span id="tip-text">Hold a clear ISL letter in frame. Use Auto mode to build words
+                                hands-free.</span>
+                        </div>
+
+                        <!-- Keyboard hint -->
+                        <div class="keyboard-hint">
+                            <kbd>Enter</kbd> add letter &nbsp;
+                            <kbd>Space</kbd> space &nbsp;
+                            <kbd>⌫</kbd> delete
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Right Panel ── -->
+            <aside class="side-panel" aria-label="Word builder and stats">
+
+                <!-- Word Builder -->
+                <div class="card builder-card">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Word Builder</h2>
+                        <div class="builder-controls">
+                            <button class="btn btn-sm btn-primary" id="add-letter-btn" aria-label="Add letter to word"
+                                disabled>+ Add</button>
+                            <button class="btn btn-sm btn-secondary" id="space-btn" aria-label="Add space">⎵</button>
+                            <button class="btn btn-sm btn-secondary" id="backspace-btn"
+                                aria-label="Backspace">⌫</button>
+                            <button class="btn btn-sm btn-secondary" id="clear-btn" aria-label="Clear word">🗑</button>
+                        </div>
+                    </div>
+
+                    <!-- Word display -->
+                    <div class="word-display" id="word-display" role="textbox" aria-label="Current word" tabindex="0">
+                        <span class="word-placeholder">Your word appears here…</span>
+                    </div>
+
+                    <!-- Word suggestions -->
+                    <div class="word-suggestions" id="word-suggestions" aria-live="polite"></div>
+
+                    <div class="word-meta">
+                        <span id="word-char-count" class="mono" style="font-size:.78rem;color:var(--text-muted)">0
+                            chars</span>
+                        <button class="btn btn-sm btn-outline" id="copy-word-btn" aria-label="Copy to clipboard">📋
+                            Copy</button>
+                    </div>
+                </div>
+
+                <!-- Session Stats -->
+                <div class="card stats-card">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Session Stats</h2>
+                        <button class="btn btn-sm btn-secondary" id="reset-stats-btn">Reset</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-val mono" id="stat-frames">0</span>
+                            <span class="stat-key">Frames</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-val mono" id="stat-detected">0</span>
+                            <span class="stat-key">Hands</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-val mono" id="stat-letters">0</span>
+                            <span class="stat-key">Letters</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-val mono" id="stat-streak">0</span>
+                            <span class="stat-key">Streak 🔥</span>
+                        </div>
+                    </div>
+                    <div class="top-letters">
+                        <div class="top-letters-title">Top Letters</div>
+                        <div id="top-letters-list" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Reference -->
+                <div class="card quick-ref-card">
+                    <div class="panel-header">
+                        <h2 class="panel-title">ISL Quick Ref</h2>
+                        <a href="/reference" class="btn btn-sm btn-outline">Full Guide →</a>
+                    </div>
+                    <div class="quick-ref-grid" id="quick-ref-grid"></div>
+                </div>
+
+                <!-- Common ISL Words -->
+                <div class="card words-card">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Common Words</h2>
+                        <button class="btn btn-sm btn-secondary" id="words-category-btn">All</button>
+                    </div>
+                    <div class="common-words-grid" id="common-words-grid">
+                        <button class="word-chip" data-word="HOPE">HOPE</button>
+                        <button class="word-chip" data-word="LOVE">LOVE</button>
+                        <button class="word-chip" data-word="PEACE">PEACE</button>
+                        <button class="word-chip" data-word="HELLO">HELLO</button>
+                        <button class="word-chip" data-word="THANK">THANK</button>
+                        <button class="word-chip" data-word="HELP">HELP</button>
+                        <button class="word-chip" data-word="SORRY">SORRY</button>
+                        <button class="word-chip" data-word="HAPPY">HAPPY</button>
+                        <button class="word-chip" data-word="GOOD">GOOD</button>
+                        <button class="word-chip" data-word="WATER">WATER</button>
+                        <button class="word-chip" data-word="FOOD">FOOD</button>
+                        <button class="word-chip" data-word="HOME">HOME</button>
+                        <button class="word-chip" data-word="FAMILY">FAMILY</button>
+                        <button class="word-chip" data-word="FRIEND">FRIEND</button>
+                        <button class="word-chip" data-word="PLEASE">PLEASE</button>
+                        <button class="word-chip" data-word="INDIA">INDIA</button>
+                    </div>
+                    <p class="words-hint">Click a word to add it. Spell letter-by-letter to build custom words.</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <div class="toast-container" role="alert" aria-live="assertive" id="toast-container"></div>
+
+    <script>
+        // Wire common word chips
+        document.querySelectorAll('.word-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Add the word to the current state
+                if (window._hushAddWord) window._hushAddWord(btn.dataset.word);
+            });
+        });
+    </script>
+    <script src="/static/js/app.js"></script>
+    <script>
+        // Expose addToWord for word chips
+        window._hushAddWord = (w) => {
+            if (state && typeof addToWord === 'function') {
+                addToWord(w + ' ');
+            }
+        };
+    </script>
+</body>
+
+</html>
